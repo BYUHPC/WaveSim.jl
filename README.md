@@ -12,6 +12,12 @@ Open the [Julia package manager](https://docs.julialang.org/en/v1/stdlib/REPL/#P
 pkg> add https://github.com/BYUHPC/WaveSim.jl.git
 ```
 
+`WaveSim.jl` can be removed with:
+
+```jldoctest
+pkg> remove WaveSim
+```
+
 
 
 ## Usage Example
