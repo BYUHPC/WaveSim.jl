@@ -128,7 +128,7 @@ WaveOrthotope(io::IO; kw...) = WaveOrthotope{defaultT}(io; kw...)
 # Write a WaveOrthotope to an IO
 
 """
-    write(io::IO, w::WaveOrthotope{T, N}, I=defaultI) where {T, N}
+    write(io::IO, w::WaveOrthotope{T, N}, I=$defaultI) where {T, N}
 
 Write `w` to `io` in binary.
 
