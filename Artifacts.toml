@@ -1,0 +1,8 @@
+[wavefiles]
+git-tree-sha1 = "4dd0a43ca3ceed9f21696f6338238e33e0150b57"
+lazy = true
+
+    [[wavefiles.download]]
+    url = "https://rc.byu.edu/course/wavefiles.tar.gz"
+    sha256 = "5f5b4ccabcbc351dc32b7bce32937ccfd29ac67ef5cf1dde4d902ffb10d85a37"
+
