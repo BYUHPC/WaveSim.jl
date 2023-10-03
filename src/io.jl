@@ -1,6 +1,6 @@
 export wavefiles
 
-using Artifacts
+using Artifacts, LazyArtifacts
 
 
 
