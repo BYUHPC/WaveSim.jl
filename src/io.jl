@@ -45,7 +45,7 @@ function wavefiles(ndims::Integer, filesize::Symbol, in_or_out::Symbol)
     filesize in (:tiny, :small, :medium) || throw(ArgumentError("filesize must be :tiny, " *
                                                                 ":small, or :medium"))
     in_or_out in (:in, :out) || throw(ArgumentError("in_or_out must be :in or :out"))
-    return wavefiles("$ndims-$(String(filesize))-$(String(in_or_out)).wo")
+    return wavefiles("$(ndims)d-$(String(filesize))-$(String(in_or_out)).wo")
 end
 
 
