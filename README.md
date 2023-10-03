@@ -43,3 +43,15 @@ julia> if !isapprox(wgood, wtest)
            println("Max v difference:     $(max(abs.(wgood.v - wtest.v)))")
        end
 ```
+
+
+
+## Easy `wavefiles.tar.gz` Access
+
+[`wavefiles.tar.gz`](https://rc.byu.edu/course/wavefiles.tar.gz) is provided as a lazily loaded [artifact](https://docs.julialang.org/en/v1/stdlib/Artifacts/). You can use the provided `wavefiles` function to access files therein:
+
+```julia
+small2din = WaveOrthotope(wavefiles(2, :small, :in)) # small-2d-in.wo
+tiny3dout = WaveOrthotope(wavefiles("3d-tiny-out.wo"))
+wavediffbinary = wavefiles("wavediff")
+```

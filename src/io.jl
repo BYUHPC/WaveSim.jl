@@ -1,3 +1,55 @@
+export wavefiles
+
+using Artifacts
+
+
+
+# Access to the wavefiles.tar.gz artifact
+
+"""
+    wavefiles()
+    wavefiles(filename::AbstractString)
+    wavefiles(ndims::Integer, filesize::Symbol, in_or_out::Symbol)
+
+Get the path to a file from `wavefiles.tar.gz`.
+
+You can access files in the `wavefiles` directory of `wavefiles.tar.gz` (see
+https://byuhpc.github.io/sci-comp-course/resources.html#the-project) by `filename` or with
+a number of dimensions, `filesize`, and whether you want an input or output file.
+
+`ndims` can be 1, 2, 3, or 4; `filesize` can be `:tiny`, `:small`, or `:medium`; and
+`in_or_out` can be `:in` or `:out`.
+
+If no argument is specified, the path to the directory itself is returned.
+
+# Examples
+
+```jldoctest
+julia> size(WaveOrthotope(open(wavefiles(2, :small, :in))))
+(80, 120)
+
+julia> simtime(WaveOrthotope(open(wavefiles("1d-medium-out.wo"))))
+109.0900000000189
+
+julia> first(readdir(wavefiles()), 4)
+4-element Vector{String}:
+ "1d-medium-in.wo"
+ "1d-medium-out.wo"
+ "1d-small-in.wo"
+ "1d-small-out.wo"
+```
+"""
+wavefiles(filename::AbstractString="") = joinpath(artifact"wavefiles/wavefiles", filename)
+
+function wavefiles(ndims::Integer, filesize::Symbol, in_or_out::Symbol)
+    filesize in (:tiny, :small, :medium) || throw(ArgumentError("filesize must be :tiny, " *
+                                                                ":small, or :medium"))
+    in_or_out in (:in, :out) || throw(ArgumentError("in_or_out must be :in or :out"))
+    return wavefiles("$ndims-$(String(filesize))-$(String(in_or_out)).wo")
+end
+
+
+
 # Display
 function Base.show(io::IO, mime::MIME"text/plain", w::WaveOrthotope{T, N}) where {T, N}
     # Print type information and header

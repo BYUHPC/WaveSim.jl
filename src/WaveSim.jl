@@ -11,6 +11,9 @@ forward in time with [`step!`](@ref) and [`solve`](@ref), and its energy determi
 
 You can choose between N-dimensional and 2-dimensional implementations of `WaveSim` with
 `set_implementation`.
+
+`wavefiles.tar.gz` is provided as an artifact; files therein can be accessed with the
+[`wavefiles`](@ref) function.
 """
 module WaveSim
 
