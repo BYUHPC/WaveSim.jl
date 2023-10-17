@@ -7,7 +7,7 @@ export energy
 
 Return the specified component of the energy contained in `w`.
 
-`compoment` can be `:total`, `:dynamic`, or `:potential`.
+`component` can be `:total`, `:dynamic`, or `:potential`.
 """
 function energy(w::WaveOrthotope{<:Real, 2}, component=:total)
     component in (:total, :dynamic, :potential) ||
