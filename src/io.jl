@@ -119,7 +119,7 @@ invertaxes(A::AbstractArray{T, N}) where {T, N} = permutedims(A, ntuple(n->N-n+1
 # Construct a WaveOrthotope from an IO
 
 """
-    WaveOrthotope[{T}](io::IO; I=$defaultI; checkstreamlength=io isa IOStream)[ where T]
+    WaveOrthotope[{T}](io::IO, I=$defaultI; checkstreamlength=io isa IOStream)[ where T]
 
 Create a `WaveOrthotope{T, N}` by reading binary from `io`.
 
@@ -173,7 +173,26 @@ function WaveOrthotope{T}(io::IO, I=defaultI; checkstreamlength=io isa IOStream)
     end
 end
 
-WaveOrthotope(io::IO; kw...) = WaveOrthotope{defaultT}(io; kw...)
+WaveOrthotope(io::IO, I=defaultI; kw...) = WaveOrthotope{defaultT}(io; kw...)
+
+
+
+# Construct a WaveOrthotope from a file
+
+"""
+    WaveOrthotope[{T}](filename::AbstractString, I=$defaultI; kw...)[ where T]
+
+Open `filename` and construct a `WaveOrthotope` from it.
+
+Equivalent to calling `WaveOrthotope[{T}](open(filename), I; kw...)`.
+"""
+function WaveOrthotope{T}(filename::AbstractString, I=defaultI; kw...) where T
+    return WaveOrthotope{T}(open(filename), I; kw...)
+end
+
+function WaveOrthotope(filename::AbstractString, I=defaultI; kw...)
+    return WaveOrthotope(open(filename), I; kw...)
+end
 
 
 
