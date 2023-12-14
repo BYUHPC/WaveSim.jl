@@ -9,8 +9,7 @@ Representation of an `N`-dimensional wave simulation orthotope.
 
 Contains displacement and its velocity, a damping coefficient, and the simulation time.
 
-Indexing returns a `Tuple{T, T}` containing the displacement and its velocity at the given
-index; setting can be done with anything that can be converted to such a tuple.
+Indexing returns the displacement at the given index.
 
 The damping coefficient and simulation time can be accessed with `dampingcoef` and
 `simtime`, respectively. Iteration and energy calculation are done with `energy`, `step!`,
@@ -73,16 +72,11 @@ end
 
 
 # AbstractArray interface
-
 Base.size(w::WaveOrthotope) = size(w.u)
 
-function Base.getindex(w::WaveOrthotope{T, N}, i::Vararg{Integer, N}) where {T, N}
-    return (w.u[i...], w.v[i...])
-end
+Base.getindex(w::WaveOrthotope, args...) = getindex(w.u, args...)
 
-function Base.setindex!(w::WaveOrthotope{T, N}, v, i::Vararg{Integer, N}) where {T, N}
-    w.u[i...], w.v[i...] = convert(NTuple{2, T}, v)
-end
+Base.setindex!(w::WaveOrthotope, args...) = setindex!(w.u, args...)
 
 
 

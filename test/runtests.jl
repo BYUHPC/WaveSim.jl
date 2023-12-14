@@ -99,14 +99,10 @@ end
         # size
         @test size(w) == size(w.u) == size(w.v)
         # getindex
-        @test all(w[i] == (w.u[i], w.v[i]) for i in eachindex(w))
+        @test all(w[i] == w.u[i] for i in eachindex(w))
         # setindex!
-        w[begin] = (2, 3)
+        w[begin] = 2
         @test w.u[begin] == 2
-        @test w.v[begin] == 3
-        # throws on bad get
-        @test_throws MethodError w[begin] = 1
-        @test_throws MethodError w[begin] = [1, 2]
     end)
 
 
