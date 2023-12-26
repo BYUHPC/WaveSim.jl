@@ -129,6 +129,47 @@ end
 
 
 
+    test_on_random_WaveOrthotopes("step!", w->begin
+        # Create and step a copy of w
+        dt = rand()
+        w1 = deepcopy(w)
+        step!(w1, dt)
+        # Convenience views
+        u1, v1, u, v = WaveSim.interior.((w1.u, w1.v, w.u, w.v))
+        uₐ = WaveSim.adjacents(u)
+        # Check stepped orthotope against actual algorithm
+        ∇²u1 = +(uₐ...)/2 - ndims(w)*u
+        @test v1 ≈ @. (1-dt*w.c)*v+dt*∇²u1
+        @test u1 ≈ @. u+dt*v1
+        @test simtime(w1) ≈ simtime(w)+dt
+        # Backward step works (if supported)
+        try
+            step!(w1, -dt)
+            @test w1 ≈ w
+        catch e
+            e isa ArgumentError || rethrow(e)
+        end
+    end)
+
+
+
+    test_on_random_WaveOrthotopes("solve!", w->begin
+        # Solve
+        solve!(w)
+        # Make sure energy is about right
+        stoppingenergy = prod(size(w).-2)/1000
+        @test energy(w) ≈ stoppingenergy || energy(w) < stoppingenergy
+        # If we step back by one time step, energy should go back up (if supported)
+        try
+            step!(w, -WaveSim.defaultdt)
+            @test energy(w) > stoppingenergy
+        catch e
+            e isa ArgumentError || rethrow(e)
+        end
+    end)
+
+
+
     test_on_random_WaveOrthotopes("I/O", w->begin
         T = WaveSim.defaultT
         I = WaveSim.defaultI
@@ -178,42 +219,45 @@ end
 
 
 
-    test_on_random_WaveOrthotopes("step!", w->begin
-        # Create and step a copy of w
-        dt = rand()
-        w1 = deepcopy(w)
-        step!(w1, dt)
-        # Convenience views
-        u1, v1, u, v = WaveSim.interior.((w1.u, w1.v, w.u, w.v))
-        uₐ = WaveSim.adjacents(u)
-        # Check stepped orthotope against actual algorithm
-        ∇²u1 = +(uₐ...)/2 - ndims(w)*u
-        @test v1 ≈ @. (1-dt*w.c)*v+dt*∇²u1
-        @test u1 ≈ @. u+dt*v1
-        @test simtime(w1) ≈ simtime(w)+dt
-        # Backward step works (if supported)
-        try
-            step!(w1, -dt)
-            @test w1 ≈ w
-        catch e
-            e isa ArgumentError || rethrow(e)
+    @testset "wavefiles" begin # also tests *.gz constructor
+        # Make sure that trying to access a non-existent file throws
+        @test_throws ArgumentError wavefiles(9, :small, :in)
+        @test_throws ArgumentError wavefiles(5, :tiny, :out)
+        @test_throws ArgumentError wavefiles(3, :wrongsymbol, :in)
+        @test_throws ArgumentError wavefiles("2D/3d-medium-out.wo")
+        # Make sure accessing directories works
+        for dir in ("bin", ntuple(N->"$(N)D", 8)...)
+            @test isdir(wavefiles(dir))
         end
-    end)
-
-
-
-    test_on_random_WaveOrthotopes("solve!", w->begin
-        # Solve
-        solve!(w)
-        # Make sure energy is about right
-        stoppingenergy = prod(size(w).-2)/1000
-        @test energy(w) ≈ stoppingenergy || energy(w) < stoppingenergy
-        # If we step back by one time step, energy should go back up (if supported)
-        try
-            step!(w, -WaveSim.defaultdt)
-            @test energy(w) > stoppingenergy
-        catch e
-            e isa ArgumentError || rethrow(e)
+        # Make sure accessing binaries works
+        for binary in ("wavediff", "waveshow", "wavesolve")
+            @test isfile(wavefiles("bin/$binary"))
         end
-    end)
+        # Test all provided files for existence and correctness
+        for N in 1:8, filesize in (:tiny, :small, :medium, :large), in_or_out in (:in, :out)
+            # Short circuit if the file doesn't exist
+            if (filesize==:tiny && N>4) || (filesize==:large && (N>4 || in_or_out==:out))
+                continue
+            end
+            # Make sure both forms of the function give identical results
+            filename = joinpath("$(N)D",
+                                "$(N)d-$(String(filesize))-$(String(in_or_out)).wo")
+            if filesize == :large
+                filename *= ".gz"
+            end
+            @test wavefiles(N, filesize, in_or_out) == wavefiles(filename)
+            # Make sure a valid WaveOrthotope can be constructed
+            if all(hasmethod.((energy, step!), Tuple{WaveOrthotope{<:Real, N}}))
+                wo = WaveOrthotope(wavefiles(filename))
+                if in_or_out == :in
+                    @test simtime(wo) == 0
+                    if filesize == :tiny || filesize == :small
+                        @test WaveOrthotope(wavefiles(N, filesize, :out)) ≈ solve!(wo)
+                    end
+                else
+                    @test isapprox(prod(size(wo).-2)/1000, energy(wo), rtol=1e-2)
+                end
+            end
+        end
+    end
 end

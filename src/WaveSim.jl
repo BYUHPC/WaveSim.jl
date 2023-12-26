@@ -6,7 +6,7 @@ discretization methods, see https://byuhpc.github.io/sci-comp-course/project/ove
 
 The [`WaveOrthotope`](@ref) type is used to store a wave orthotope's simulation time,
 damping coefficient, displacement, and displacement velocity. The simulation can be moved
-forward in time with [`step!`](@ref) and [`solve`](@ref), and its energy determined with
+forward in time with [`step!`](@ref) and [`solve!`](@ref), and its energy determined with
 [`energy`](@ref). See [`WaveOrthotope`](@ref) for a full list of associated functions.
 
 You can choose between N-dimensional and 2-dimensional implementations of `WaveSim` with

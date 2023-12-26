@@ -1,15 +1,13 @@
 export wavefiles
 
-using Artifacts, LazyArtifacts
+using Artifacts, LazyArtifacts, GZip
 
 
-
-# Access to the wavefiles.tar.gz artifact
 
 """
     wavefiles()
     wavefiles(filename::AbstractString)
-    wavefiles(ndims::Integer, filesize::Symbol, in_or_out::Symbol)
+    wavefiles(N::Integer, filesize::Symbol, in_or_out::Symbol)
 
 Get the path to a file from `wavefiles.tar.gz`.
 
@@ -17,7 +15,8 @@ You can access files in the `wavefiles` directory of `wavefiles.tar.gz` (see
 https://byuhpc.github.io/sci-comp-course/resources.html#the-project) by `filename` or with
 a number of dimensions, `filesize`, and whether you want an input or output file.
 
-`ndims` can be 1, 2, 3, or 4; `filesize` can be `:tiny`, `:small`, or `:medium`; and
+`N` can be any integer between 1 and 8, although 5-8 dimensions are only available for small
+and medium orthotopes; `filesize` can be `:tiny`, `:small`, `:medium`, or `large`; and
 `in_or_out` can be `:in` or `:out`.
 
 If no argument is specified, the path to the directory itself is returned.
@@ -25,27 +24,40 @@ If no argument is specified, the path to the directory itself is returned.
 # Examples
 
 ```jldoctest
-julia> size(WaveOrthotope(open(wavefiles(2, :small, :in))))
-(80, 120)
+julia> size(WaveOrthotope(wavefiles(2, :small, :in)))
+(83, 120)
 
-julia> simtime(WaveOrthotope(open(wavefiles("1d-medium-out.wo"))))
-109.0900000000189
+julia> simtime(WaveOrthotope(wavefiles("1D/1d-medium-out.wo")))
+69.72999999999877
 
-julia> first(readdir(wavefiles()), 4)
-4-element Vector{String}:
+julia> first(readdir(wavefiles("1D")), 3)
+3-element Vector{String}:
+ "1d-large-in.wo.gz"
  "1d-medium-in.wo"
  "1d-medium-out.wo"
- "1d-small-in.wo"
- "1d-small-out.wo"
 ```
 """
-wavefiles(filename::AbstractString="") = joinpath(artifact"wavefiles/wavefiles", filename)
+function wavefiles(filename::AbstractString="")
+    filepath = joinpath(artifact"wavefiles/wavefiles", filename)
+    if ispath(filepath)
+        return filepath
+    else
+        throw(ArgumentError("wave file $filename does not exist in wavefiles.tar.gz"))
+    end
+end
 
-function wavefiles(ndims::Integer, filesize::Symbol, in_or_out::Symbol)
-    filesize in (:tiny, :small, :medium) || throw(ArgumentError("filesize must be :tiny, " *
-                                                                ":small, or :medium"))
+function wavefiles(N::Integer, filesize::Symbol, in_or_out::Symbol)
+    if !(filesize in (:tiny, :small, :medium, :large))
+        throw(ArgumentError("filesize must be :tiny, :small, :medium, or :large"))
+    end
     in_or_out in (:in, :out) || throw(ArgumentError("in_or_out must be :in or :out"))
-    return wavefiles("$(ndims)d-$(String(filesize))-$(String(in_or_out)).wo")
+    maxN = filesize == :tiny || filesize == :large ? 4 : 8
+    1 <= N <= maxN || throw(ArgumentError("N must be in [1, $maxN] for size $filesize"))
+    filename = joinpath("$(N)D", "$(N)d-$(String(filesize))-$(String(in_or_out)).wo")
+    if filesize == :large
+        filename *= ".gz"
+    end
+    return wavefiles(filename)
 end
 
 
@@ -184,14 +196,17 @@ WaveOrthotope(io::IO, I=defaultI; kw...) = WaveOrthotope{defaultT}(io; kw...)
 
 Open `filename` and construct a `WaveOrthotope` from it.
 
-Equivalent to calling `WaveOrthotope[{T}](open(filename), I; kw...)`.
+Equivalent to calling `WaveOrthotope[{T}](open(filename), I; kw...)` (or
+`WaveOrthotope[{T}](gzopen(filename), I; kw...)` if the file is gzip compressed).
 """
 function WaveOrthotope{T}(filename::AbstractString, I=defaultI; kw...) where T
-    return WaveOrthotope{T}(open(filename), I; kw...)
+    gzipsignature = 0x8B1F
+    f = read(open(filename), UInt16) == gzipsignature ? gzopen(filename) : open(filename)
+    return WaveOrthotope{T}(f, I; kw...)
 end
 
 function WaveOrthotope(filename::AbstractString, I=defaultI; kw...)
-    return WaveOrthotope(open(filename), I; kw...)
+    return WaveOrthotope{defaultT}(filename, I; kw...)
 end
 
 
