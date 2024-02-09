@@ -48,6 +48,7 @@ function set_implementation(impl::String)
     @info("implementation set to $impl; restart Julia for the change to take effect.")
 end
 
+# Set default implementation (2D or ND)
 const implementation = @load_preference("implementation", "ND")
 
 
