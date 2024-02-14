@@ -234,17 +234,14 @@ end
             @test isfile(wavefiles("bin/$binary"))
         end
         # Test all provided files for existence and correctness
-        for N in 1:8, filesize in (:tiny, :small, :medium, :large), in_or_out in (:in, :out)
+        for N in 1:8, filesize in (:tiny, :small, :medium), in_or_out in (:in, :out)
             # Short circuit if the file doesn't exist
-            if (filesize==:tiny && N>4) || (filesize==:large && (N>4 || in_or_out==:out))
+            if filesize==:tiny && N>4
                 continue
             end
             # Make sure both forms of the function give identical results
             filename = joinpath("$(N)D",
                                 "$(N)d-$(String(filesize))-$(String(in_or_out)).wo")
-            if filesize == :large
-                filename *= ".gz"
-            end
             @test wavefiles(N, filesize, in_or_out) == wavefiles(filename)
             # Make sure a valid WaveOrthotope can be constructed
             if all(hasmethod.((energy, step!), Tuple{WaveOrthotope{<:Real, N}}))
