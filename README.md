@@ -39,8 +39,8 @@ julia> if !isapprox(wgood, wtest)
            println("out.wo is incorrect")
            println("Damping coefficients: $(dampingcoef(wgood)), $(dampingcoef(wtest))")
            println("Simulation times:     $(simtime(wgood)), $(simtime(wtest))")
-           println("Max u difference:     $(max(abs.(wgood.u - wtest.u))...)")
-           println("Max v difference:     $(max(abs.(wgood.v - wtest.v))...)")
+           println("Max u difference:     $(maximum(abs.(wgood.u - wtest.u))...)")
+           println("Max v difference:     $(maximum(abs.(wgood.v - wtest.v))...)")
        end
 ```
 
